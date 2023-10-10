@@ -1,0 +1,158 @@
+openapi: 3.0.0
+info:
+  title: Movie Ticket Booking Payment - OpenAPI 3.0
+  description: This is an OpenAPI specification in 3.0 for payments for movie ticket bookings. 
+  The API is a part of our online movie ticket booking system, allowing customers to choose and pay in multiple payment options such as credit card, paypal, and venmo for their movie ticket bookings.
+  The API provides endpoints for payment detail retrieval for a booking id, make payments for booking reservations using preferred payment option, and cancel reservations if necessary.
+
+  Features:
+    -Get payment details for a booking
+    -Process payments with provided payment information
+    -Cancel payments for a booking
+
+  Usage Guidelines:
+    -Use "GET" endpoint to receive payment details for a booking
+    -Use "POST" endpoint to make payments for a booking. Ensure that the provided payment information is valid
+    -Use "DELETE" endpoint to cancel a booking
+  
+  termsOfService: https://movieticketbookings.example.com/terms-of-service
+  contact:
+    name: Movie Theater Booking Support
+    email: apiteam@movieticketbookings.io
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+  - url: https://movieticketbookings.example.com/api/v1
+    description: Main server for API
+  - url: https://bookingstest.example.com/api/v1
+    description: Internal server for API testing
+tags:
+  -name: payment information
+  description: everything pertaining to payment information
+paths:
+/bookingDetails/payments:
+  /bookingDetails/payments/findPayment:
+    get:
+      tags:
+        - payment information
+      summary: Receive payment details
+      description: Multiple status values can be provided upon receival of payment information
+      operationId: 
+      parameters:
+        - name: payment_type
+          in: query
+          description: payment type for filter
+          required: true
+          schema:
+          type: string
+          default: credit card
+          enum:
+            - Approved
+            - Declined
+        - name: payment_information
+          in: query
+          description: Status values for filter
+          required: true
+          schema:
+          type: string
+          default: Payment Information
+          enum:
+            - Approved
+            - Declined
+      responses:
+        '200':    
+          description: Approved response with payment details
+          content:
+            application/json:
+              schema: 
+                type: string
+                items: 
+                  $ref: '#/components/schemas/payment information'
+            application/xml:
+              schema:
+                type: string
+                  items: 
+                    $ref: '#/components/schemas/payment information'
+        '404':
+          description: Declined, payment details not found for booking
+  /bookingDetails/payments/MakePayment:
+      post: 
+        tags:
+        - payment information
+        summary: Process payment
+        description: Processes payment with provided payment details for movie ticket
+        operationId: processPayment
+        requestBody:
+          description: Process payment information
+          required: true
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  booking_id:
+                    type: string
+                    description: Unique number for booking id
+                  payment information:
+                    type: object
+                    properties:
+                      credit_card_number:
+                        type: string
+                        description: credit card number
+                      expiration:
+                        type: string
+                        description: credit card expiration date (MM/YY)
+                      CVV:
+                        type: string
+                        description: credit card security code on the back of the card
+        responses:
+          '200':
+            description: Payment successful
+            content:
+              application/json:
+                schema:
+                  type: object
+                  $ref: '#components/schemas/paymentProcess'
+                    transaction_id:
+                      type: string
+                      $ref: '#components/schemas/paymentProcess'
+                    transaction_status:
+                      type: string
+                      $ref: '#components/schemas/paymentProcess'
+          '400':
+            description: Invalid payment, please check provided information
+            content:
+              application/json:
+                schema:
+                  type: object
+                  $ref: '#components/schemas/paymentProcess'
+          '403':
+            description: Payment declined
+            content:
+              application/json:
+                schema:
+                  type: object
+                  $ref: '#components/schemas/paymentProcess'
+  /bookingDetails/payments/cancelPayment:
+    delete: 
+      tags:
+        - payment information
+        summary: Cancel booking
+        description: Cancel payment for selected movie booking 
+        operationId: deleteBooking
+        parameters:
+          - name: booking id
+            in: query
+            description: The booking id number for booking that needs to be canceled
+            required: true
+            schema:
+              type: string
+      responses:
+      '200':
+        description: Booking canceled successfully
+      '400':
+        description: Booking not found for given booking id
+      '403':
+        description: Unable to cancel booking
